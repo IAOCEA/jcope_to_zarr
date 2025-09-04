@@ -133,8 +133,7 @@ def _parse_def_axis(first_line: str, it, key: str) -> Dict:
     typ = parts[2].lower()
     if typ == "linear":
         v0 = float(parts[3]); dv = float(parts[4])
-        # calcule en float64 puis cast en float32 pour rester cohérent
-        vals = (v0 + dv * np.arange(n, dtype=np.float64))#.astype(np.float32)
+        vals = v0 + dv * np.arange(n, dtype=np.float64)
         return {"n": n, "type": "linear", "vals": vals}
     elif typ == "levels":
         remain = " ".join(parts[3:])
@@ -144,11 +143,10 @@ def _parse_def_axis(first_line: str, it, key: str) -> Dict:
             except StopIteration:
                 break
         nums = re.findall(r"[-+0-9.eE]+", remain)
-        vals = np.array(list(map(float, nums[:n])), dtype=np.float32)#.astype(np.float32)
+        vals = np.array(list(map(float, nums[:n])), dtype=np.float64)
         return {"n": n, "type": "levels", "vals": vals}
     else:
         raise ValueError(f"Unsupported {key} type: {typ}")
-
 
 
 def _parse_tdef(first_line: str, it) -> Dict:
@@ -180,7 +178,7 @@ def _dtype_from_options(options: List[str]) -> np.dtype:
 def read_grads_singlevar_singletime(
     bin_path: str,
     ctl: Dict,
-    var_name: Optional[str] = None,
+    var_name: Optional[str] = None,no_z=False
 ) -> Tuple[np.ndarray, List[str], Dict[str, np.ndarray], Dict]:
     """
     Read single variable, single time binary into ndarray.
@@ -193,7 +191,7 @@ def read_grads_singlevar_singletime(
     nx = ctl["xdef"]["n"]; ny = ctl["ydef"]["n"]
     nz = ctl["zdef"]["n"] if ctl.get("zdef") else 1
     nt = ctl["tdef"]["n"] if ctl.get("tdef") else 1
-
+    if no_z: nz=1
     options = ctl.get("options", [])
     dtype = _dtype_from_options(options)
     undef = ctl.get("undef", 1.0e20)
@@ -270,18 +268,20 @@ def to_netcdf_singlevar(
     ds.to_netcdf(out_path, engine=engine, encoding=encoding)
     return out_path
 
-def read_first_n_times(data_dir, ctl_path, glob_pattern, n=10, var_name=None):
+def read_first_n_times(data_dir, ctl_path, glob_pattern, n=10, var_name=None,no_z=False,):
     ctl = parse_ctl(ctl_path)
+    print(no_z)
     if var_name is None:
         var_name = ctl["vars"][0][0] if ctl.get("vars") else "var"
-
+    print(data_dir)
     files = sorted(data_dir.glob(glob_pattern))[:n]
     all_das = []
     last_meta = None
+    print(files)
 
     for bin_file in files:
         print(f"Reading {bin_file.name}")
-        data, dims, coords, meta = read_grads_singlevar_singletime(bin_file, ctl, var_name=var_name)
+        data, dims, coords, meta = read_grads_singlevar_singletime(bin_file, ctl, var_name=var_name,no_z=no_z)
         last_meta = meta
 
         if "time" not in dims:
@@ -296,7 +296,6 @@ def read_first_n_times(data_dir, ctl_path, glob_pattern, n=10, var_name=None):
 
         da = xr.DataArray(data, dims=dims, coords=coords_for_xr, name=var_name)
         all_das.append(da)
-
     big_da = xr.concat(all_das, dim="time")
     ds = big_da.to_dataset(name=var_name)
 
@@ -453,19 +452,17 @@ def read_basic_to_xarray(
         raise ValueError("Byte offset mismatch after parsing payload.")
 
     # ---- coords & xarray ----
-    # x = xlons + dx * np.arange(im, dtype=np.float64)
-    # y = ylats + dy * np.arange(jm, dtype=np.float64)
-    x = xlons + dx * np.arange(im, dtype=np.float32)
-    y = ylats + dy * np.arange(jm, dtype=np.float32)
+    x = xlons + dx * np.arange(im, dtype=np.float64)
+    y = ylats + dy * np.arange(jm, dtype=np.float64)
     z = np.arange(1, km+1, dtype=np.int32)  # level index（必要なら実深度に置換）
     zlev = compute_zlev(km)
     print(z)
     
     ds = xr.Dataset(
         data_vars=dict(
-            Z =(("latitude","longitude","z"), Z.astype(np.float64)),
-            ZZ=(("latitude","longitude","z"), ZZ.astype(np.float64)),
-            DZ=(("latitude","longitude","z"), DZ.astype(np.float64)),
+            Z =(("latitude","longitude","z"), Z.astype(np.float32)),
+            ZZ=(("latitude","longitude","z"), ZZ.astype(np.float32)),
+            DZ=(("latitude","longitude","z"), DZ.astype(np.float32)),
         ),
         coords=dict(
             longitude=("longitude", x, {"long_name": "longitude", "coordinates": "x", "units": "degrees_east"}),
@@ -588,3 +585,22 @@ def interp_sigma_to_zlev_with_ssh(
 
     print("Interpolation complete.")
     return TLEV
+from datetime import datetime, timedelta
+
+def list_of_time(initial_time="202102251600", final_time="202102261600"):
+    """
+    Generate a list of hourly timestamps between initial_time and final_time.
+    Both times must be in format 'YYYYMMDDHHMM'.
+    """
+    # Parse input strings into datetime objects
+    start = datetime.strptime(initial_time, "%Y%m%d%H%M")
+    end = datetime.strptime(final_time, "%Y%m%d%H%M")
+    
+    # Generate list of hourly steps
+    times = []
+    current = start
+    while current <= end:
+        times.append(current.strftime("%Y%m%d%H%M"))
+        current += timedelta(hours=1)
+    
+    return times
