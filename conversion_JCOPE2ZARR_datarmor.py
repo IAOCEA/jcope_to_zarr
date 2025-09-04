@@ -28,27 +28,24 @@ jcope_bin_dir="/Users/todaka/data/jamstec/jcope2/"
 
 out_path="/Users/todaka/data/jamstec/jcope2.zarr"
 out_path="/Users/todaka/data/jamstec/jcope2.zarr"
-
-
-
-# Example usage
-times = list_of_time("202102220000", "202102282300")
-#print(times)
-#times=times[1:2]
-times
+month="2102"
 initial_time="202102251600"
-times = list_of_time(initial_time, "202102251700")
+final_time="202102251700"
 
+month="2103"
 initial_time="202102220000"
+final_time="202102282300"
+initial_time="202103010000"
+final_time="202103312300"
 path_to_sbasic="/scale/project/taos-s/public/jcope/jcope_bin/2103_ctl/sbasic.dat"
 jcope_ctr_dir="/scale/project/taos-s/public/jcope/jcope_bin/2103_ctl/"
-jcope_bin_dir="/scale/project/taos-s/public/jcope/jcope_bin/2102"
-out_path="/scale/project/taos-s/public/jcope/jcope_bin/zarr/tr_5M_202102.zarr"
-times = list_of_time(initial_time, "202102282300")
+jcope_bin_dir="/scale/project/taos-s/public/jcope/jcope_bin/"+month
+out_path="/scale/project/taos-s/public/jcope/jcope_bin/zarr/tr_5M_20"+month+".zarr"
+times = list_of_time(initial_time, final_time)
 
 print(times)
-times=times[1:2]
-times
+#times=times[1:2]
+#times
 
 chunk={"time": 1, "latitude": "auto", "longitude": "5M","z":-1}
 
@@ -130,7 +127,6 @@ ds
 
 
 for time in times:
-#time='202102251700'
     print('appeding time',time)
     ds_egt = read_first_n_times(egtdir, egt_ctl, "EGT_"+time+".bin", n=n_time, no_z=True)
     
