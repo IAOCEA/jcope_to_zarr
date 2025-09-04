@@ -1,5 +1,7 @@
 # jcope_to_zarr
 
+ micromamba create -n jcope2zarr python=3.11 xarray dask zarr netcdf4 h5netcdf pandas numpy ipython jupytext
+
 
 ## How to run
 
