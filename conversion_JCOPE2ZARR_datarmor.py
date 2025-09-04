@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-!pip install "zarr<3" -U
+#!pip install "zarr<3" -U
 # In[1]:
 
 
@@ -24,7 +24,7 @@ km: int = 47
 print(im)
 path_to_sbasic="/mnt/c/Users/ecap/Documents/JCOPE/sbasic/sbasic.dat"
 path_to_sbasic="/Users/todaka/data/jamstec/2103_ctl/sbasic.dat"
-path_to_sbasic="/home/datawork-taos-s/public/jcope/jcope_bin/2103_ctl/sbasic.dat"
+path_to_sbasic="/scale/project/taos-s/public/jcope/jcope_bin/2103_ctl/sbasic.dat"
 ds_sbasic, fildsc, ichflg = read_basic_to_xarray(path_to_sbasic,im=im,jm=jm,km=km,)
 
 #ds_sbasic.chunk({"longitude":902/2,"latitude":650/2,"zlev":"10M"}).to_zarr('jcope.zarr',mode='w')
@@ -79,16 +79,16 @@ ttdir  = ttdir_new
 #out_path = ttdir / "EGT_TT.zarr"
 
 jcope_ctr_dir="/Users/todaka/data/jamstec/2103_ctl/"
-jcope_ctr_dir="/home/datawork-taos-s/public/jcope/jcope_bin/2103_ctl/"
+jcope_ctr_dir="/scale/project/taos-s/public/jcope/jcope_bin/2103_ctl/"
 
 
 jcope_bin_dir="/Users/todaka/data/jamstec/jcope2/"
-jcope_bin_dir="/home/datawork-taos-s/public/jcope/jcope_bin/2102"
+jcope_bin_dir="/scale/project/taos-s/public/jcope/jcope_bin/2102"
 
 
 out_path="/Users/todaka/data/jamstec/jcope2.zarr"
 out_path="/Users/todaka/data/jamstec/jcope2.zarr"
-out_path="/home/datawork-taos-s/public/jcope/jcope_bin/zarr/tr.zarr"
+out_path="/scale/project/taos-s/public/jcope/jcope_bin/zarr/tr.zarr"
 
 tt_ctl = Path(jcope_ctr_dir) / "TT.ctl"
 egt_ctl = Path(jcope_ctr_dir) / "EGT.ctl"
