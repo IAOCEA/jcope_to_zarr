@@ -30,48 +30,6 @@ ds_sbasic, fildsc, ichflg = read_basic_to_xarray(path_to_sbasic,im=im,jm=jm,km=k
 #ds_sbasic.chunk({"longitude":902/2,"latitude":650/2,"zlev":"10M"}).to_zarr('jcope.zarr',mode='w')
 ds_sbasic
 
-ds_sbasic.Z.isel(z=1).plot()
-# Now we have converted the sbasic into xarray.dataset we have Z , ZZ (layers thickness), DZ 
-# 
-# zlev(kzd) →  layer centers
-# 
-# z_z(kzd+1) → depths of the interfaces.
-# 
-# dz_z(kzd) → vertical thickness of layers.
-
-# ## Download from jamstec if needed
-# 
-from download_bin import fetch_hourly_and_decompress
-
-
-output_base_dir = Path("/mnt/c/Users/ecap/Documents/JCOPE/4days_data_jcope_202102/")
-rr
-# URL du dossier distant 
-base_url = "https://www.jamstec.go.jp/jcope/data/odaka20240424-2102"
-
-# Date de départ 
-start_time = "202102220000"
-n_time = 2
-# overwrite=False évite de retélécharger / regunzipper si déjà présent
-overwrite_downloads = False
-
-# strict=True lèvera une erreur si on n'a pas trouvé exactement n_time fichiers
-strict_mode = True
-# ---------------------------------------------------------
-
-egtdir_new = output_base_dir / "EGT"
-ttdir_new  = output_base_dir / "TT"
-
-fetch_hourly_and_decompress("EGT", base_url, start_time, n_time, egtdir_new,
-                            overwrite=overwrite_downloads, strict=strict_mode)
-fetch_hourly_and_decompress("TT",  base_url, start_time, n_time, ttdir_new,
-                            overwrite=overwrite_downloads, strict=strict_mode)
-
-egtdir = egtdir_new
-ttdir  = ttdir_new
-# ## Transform  first time step to zarr ( initialise the Zarr file)
-
-# In[3]:
 
 
 #egt_ctl = egtdir.parent / "CTL/EGT_patch_zdef1.ctl"
@@ -88,7 +46,7 @@ jcope_bin_dir="/scale/project/taos-s/public/jcope/jcope_bin/2102"
 
 out_path="/Users/todaka/data/jamstec/jcope2.zarr"
 out_path="/Users/todaka/data/jamstec/jcope2.zarr"
-out_path="/scale/project/taos-s/public/jcope/jcope_bin/zarr/tr.zarr"
+out_path="/scale/project/taos-s/public/jcope/jcope_bin/zarr/tr2.zarr"
 
 tt_ctl = Path(jcope_ctr_dir) / "TT.ctl"
 egt_ctl = Path(jcope_ctr_dir) / "EGT.ctl"
