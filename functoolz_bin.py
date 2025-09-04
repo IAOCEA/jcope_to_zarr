@@ -27,6 +27,27 @@ except Exception as e:
     raise SystemExit("xarray is required (pip install xarray).") from e
 
 
+
+import numpy as np
+import xarray as xr
+from datetime import datetime
+
+def units_from_base_time(base_time64ns: np.datetime64) -> str:
+    # "hours since YYYY-MM-DD HH:MM:SS"
+    # Zarrに書くときはこの文字列をそのまま使う
+    py_dt = datetime.utcfromtimestamp(
+        (base_time64ns.astype('datetime64[s]').astype('int'))
+    )
+    return f"hours since {py_dt.strftime('%Y-%m-%d %H:%M:%S')}"
+
+def set_time_encoding_hours(ds: xr.Dataset, units: str) -> xr.Dataset:
+    ds = ds.copy()
+    # 念のため ns に統一し、既存エンコーディングはクリア
+    ds['time'] = ds['time'].values.astype('datetime64[ns]')
+    ds['time'].encoding = {'units': units}  # ここが肝
+    # 追記時に再取得できるように attrs にも保存（encoding は読み戻し時に消えるため）
+    ds.attrs['time_units_hours_since'] = units
+    return ds
 # --------------------------
 # Helper: infer time from filename
 # --------------------------
